@@ -128,10 +128,10 @@ public class AttackAction : Action
 		// The object hit is organic, call take damage function.
 		else if(target && organic)
 		{
-			HealthManager targetHealth = target.GetComponent<HealthManager>();
+			HealthManager targetHealth = target.root.GetComponent<HealthManager>();
 			if(targetHealth)
 			{
-				targetHealth.TakeDamage(hitPoint, direction, controller.classStats.bulletDamage, target.GetComponent<Collider>(), controller.gameObject);
+				targetHealth.TakeDamage(hitPoint, direction, controller.classStats.bulletDamage, target.root.GetComponent<Collider>(), controller.gameObject);
 			}
 		}
 		// Play shot audio clip at shot position.
