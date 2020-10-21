@@ -93,6 +93,8 @@ namespace BNG {
         [Tooltip("Offset the height of the CharacterController by this amount")]
         public float CharacterControllerYOffset = -0.025f;
 
+        public float CharacterControllerCrouchYOffset = -0.025f;
+
         /// <summary>
         /// Height of our camera in local coords
         /// </summary>
@@ -153,6 +155,7 @@ namespace BNG {
         private float _initialGravityModifier;
         private Vector3 _initialPosition;
         private Transform _initialCharacterParent;
+        private bool _isCrouching;
 
         void Start() {
             characterController = GetComponentInChildren<CharacterController>();
@@ -220,6 +223,8 @@ namespace BNG {
             UpdateDistanceFromGround();
 
             CheckCharacterCollisionMove();
+
+            UpdateCrouch();
 
             if (characterController) {
 
@@ -358,6 +363,44 @@ namespace BNG {
             }
         }
 
+        private void UpdateCrouch()
+        {
+            var cam = PlayerVR.instance.mainCamera;
+            float moveDistance = cam.transform.localPosition.y / 2;
+
+            var buttonDown = InputBridge.Instance.XButtonDown;
+            if (buttonDown)
+            {
+                if (SetCrouch(!_isCrouching))
+                    _isCrouching ^= true;
+            }
+        }
+
+        private bool SetCrouch(bool mode)
+        {
+            var cam = PlayerVR.instance.mainCamera;
+            var targetTransform = PlayerVR.instance.trackingSpace;
+            float camToGroundDistance = cam.transform.localPosition.y;
+            Vector3 tempLocalPos = targetTransform.localPosition;
+            if (mode)
+            {
+                if ((camToGroundDistance + CharacterControllerCrouchYOffset) < 0.7f)
+                {
+#if UNITY_EDITOR
+                    Debug.Log("Can't crouch, camera too low");
+#endif
+                    return false;
+                }
+                tempLocalPos.y = -(camToGroundDistance * 0.3f) + CharacterControllerCrouchYOffset;
+            }
+            else
+            {
+                tempLocalPos.y = 0f;
+            }
+            targetTransform.localPosition = tempLocalPos;
+
+            return true;
+        }
 
         public virtual void CheckCharacterCollisionMove() {
 
